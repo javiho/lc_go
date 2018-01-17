@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main View Title</title>
+    <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <style>
+        .time-box{
+            border-style: solid;
+        }
+    </style>
+</head>
+<body>
+    <form name="life-calendar" action="/calendar" method="post">
+        <input type="submit" value="Save calendar">
+        <br/>
+        {{$timeBoxes := .}}
+        {{range $timeBoxes}}
+            <div data-id={{.Id}} class="time-box">
+                Time from {{.Start}} to {{.End}}
+                {{range .NoteBoxes}}
+                    <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}>
+                {{end}}
+            </div>
+        {{end}}
+    </form>
+    <form name="single-note" action="/update_note" method="post">
+
+    </form>
+</body>
+</html>
