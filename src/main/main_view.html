@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <title>Main View Title</title>
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <script>
+        var selectedNote = null;
+        //$(document).ready();
+        
+    </script>
     <style>
         .time-box{
             border-style: solid;
@@ -11,21 +16,27 @@
     </style>
 </head>
 <body>
-    <form name="life-calendar" action="/calendar" method="post">
-        <input type="submit" value="Save calendar">
-        <br/>
+    <div id="life-calendar">
         {{$timeBoxes := .}}
         {{range $timeBoxes}}
             <div data-id={{.Id}} class="time-box">
                 Time from {{.Start}} to {{.End}}
                 {{range .NoteBoxes}}
-                    <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}>
+                    <div>
+                        {{.Note.Text}}
+                        <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
+                        <button id={{.Id}}>Edit note</button>
+                    </div>
                 {{end}}
             </div>
         {{end}}
-    </form>
-    <form name="single-note" action="/update_note" method="post">
-
+    </div>
+    <h3>Selected note</h3>
+    <form name="single-note-form" action="/update_note" method="post" data-note-id="">
+        <input type="text" name="note-selected-text" value="(None selected)">
+        <p>Note beginning: <span id="note-start">(None selected)</span></p>
+        <p>Note end: <span id="note-end">(None selected)</span></p>
+        <input type="submit" value="Save note!">
     </form>
 </body>
 </html>

@@ -107,12 +107,8 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	fmt.Println(r.Form[nbId])
 
 	/*
-	Käydään läpi olemassa olevat note boksit
-		Käyddän clienitla tulleiden läpi noteboksien id:t
-			Jos id:t smat, boksit vastaavat toisiaan
-			Jos on eri teksti, niin ????
-	VAI PITÄISIKÖ ASIAKKAAN POLELLA NOTET OLLA VAIN TEKSILLA CAPTIOITUJA NAPINKALTAISIA, JOISTA AVAUTUISI VIEREISEEN PANEELIIN TEKSTI JA NOTEN
-	MUUT TIEDOT?
+	Saadaan uusi teksti ja note
+	SEURAAVAKSI SOVIETTAVA TÄMÄ TIEDOSTO HTML:N MUUTOKSIIN
 	 */
 
 	//oldNoteBoxes := NoteBoxes
