@@ -5,9 +5,25 @@
     <title>Main View Title</title>
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
+        "use strict";
         var selectedNote = null;
-        //$(document).ready();
-        
+        var saveNoteButton;
+
+        function saveNoteButtonClicked(event){
+            console.log("save button click'd!");
+            window.location.href = "/update_note";
+        }
+        function initialize(){
+            console.log("intialize call'd!");
+            saveNoteButton = $('#saveNoteButton');
+            saveNoteButton.click(saveNoteButtonClicked);
+        }
+
+        $(initialize);
+        console.log("asfasf");
+
+
+
     </script>
     <style>
         .time-box{
@@ -32,11 +48,12 @@
         {{end}}
     </div>
     <h3>Selected note</h3>
-    <form name="single-note-form" action="/update_note" method="post" data-note-id="">
-        <input type="text" name="note-selected-text" value="(None selected)">
+    <form id="single-note-div" action="/note_changed" method="post">
+        <input type="text" id="note-selected-text" value="(None selected)">
         <p>Note beginning: <span id="note-start">(None selected)</span></p>
         <p>Note end: <span id="note-end">(None selected)</span></p>
         <input type="submit" value="Save note!">
+        <input type=hidden name="node-id" value="(None)">
     </form>
 </body>
 </html>
