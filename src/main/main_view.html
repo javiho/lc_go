@@ -6,23 +6,44 @@
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
         "use strict";
-        var selectedNote = null;
-        var saveNoteButton;
+        var editNoteForm;
+        var noteSelectedTextInput;
 
-        function saveNoteButtonClicked(event){
-            console.log("save button click'd!");
-            window.location.href = "/update_note";
+        function editNoteButtonClicked(e){
+            console.log("edit note button click'd!")
+            var clickedButton = $(e.target);
+            var noteBoxDiv = clickedButton.closest("div").filter(".js-note-box");
+            console.assert(noteBoxDiv !== undefined, "noteBoxDiv undefined");
+            //console.log(noteBoxDiv);
+            var start = noteBoxDiv.data("note-start");
+            var end = noteBoxDiv.data("note-end");
+            var text = noteBoxDiv.data("note-text");
+            console.assert(start !== undefined);
+            console.assert(end !== undefined);
+            console.assert(text !== undefined);
+            console.log([start, end, text]);
+            noteSelectedTextInput.attr('value', text);
         }
+
         function initialize(){
             console.log("intialize call'd!");
-            saveNoteButton = $('#saveNoteButton');
-            saveNoteButton.click(saveNoteButtonClicked);
+            editNoteForm = $('#edit-note-form');
+            noteSelectedTextInput = $('#note-selected-text');
+            $(document).click(function(e){
+                var eventTargetJQuery = $(e.target)
+                // Split classes by whitespaces to get array of classes
+                var targetClasses = eventTargetJQuery.attr('class').split(/\s+/);
+                console.log("targetClasses: ");
+                console.log(targetClasses);
+                console.log(typeof targetClasses);
+                if(targetClasses.includes('js-edit-note-button')){
+                    editNoteButtonClicked(e);
+                }
+            });
         }
 
         $(initialize);
         console.log("asfasf");
-
-
 
     </script>
     <style>
@@ -35,20 +56,21 @@
     <div id="life-calendar">
         {{$timeBoxes := .}}
         {{range $timeBoxes}}
-            <div data-id={{.Id}} class="time-box">
+            <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.Start}}" data-end="{{.End}}">
                 Time from {{.Start}} to {{.End}}
                 {{range .NoteBoxes}}
-                    <div>
+                    <div class="js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.Start}}" data-note-end="{{.Note.End}}"
+                            data-note-id="{{.Note.Id}}">
                         {{.Note.Text}}
                         <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
-                        <button id={{.Id}}>Edit note</button>
+                        <button id={{.Id}} class="js-edit-note-button">Edit note</button>
                     </div>
                 {{end}}
             </div>
         {{end}}
     </div>
     <h3>Selected note</h3>
-    <form id="single-note-div" action="/note_changed" method="post">
+    <form id="edit-note-form" action="/note_changed" method="post">
         <input type="text" id="note-selected-text" value="(None selected)">
         <p>Note beginning: <span id="note-start">(None selected)</span></p>
         <p>Note end: <span id="note-end">(None selected)</span></p>
