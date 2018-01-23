@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/kjk/betterguid"
+	"strconv"
 )
 
 /*
@@ -52,7 +53,7 @@ type TimeBox struct {
 
 var ResolutionUnit TimeUnit
 var TheLife Life
-var NoteBoxes []NoteBox
+//var NoteBoxes []NoteBox
 
 func main(){
 	id := betterguid.New()
@@ -60,7 +61,7 @@ func main(){
 	initializeData()
 	fmt.Println("data initialized")
 	http.HandleFunc("/", SendCalendar)
-	http.HandleFunc("/calendar", ChangeAndSendCalendar)
+	http.HandleFunc("/note_changed", ChangeAndSendCalendar)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -81,11 +82,11 @@ func initializeData() {
 func SendCalendar(w http.ResponseWriter, r *http.Request){
 	timeBoxes := createTimeBoxes(TheLife, ResolutionUnit)
 
-	for _, timeBox := range timeBoxes{
+	/*for _, timeBox := range timeBoxes{
 		for _, noteBox := range timeBox.NoteBoxes{
 			NoteBoxes = append(NoteBoxes, noteBox)
 		}
-	}
+	}*/
 
 	template, err := template.ParseFiles("src/main/main_view.html")
 	if err != nil{
@@ -100,22 +101,31 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
-	nbId := NoteBoxes[0].Id
+	noteId := r.Form["note-id"]
+	noteText := r.Form["note-text"]
+	noteIdString, err := strconv.Atoi(noteId[0])
+	note := TheLife.getNoteById(noteIdString)
+	TheLife.
+
+	/*nbId := NoteBoxes[0].Id
 	noteId := NoteBoxes[0].Note.Id
-	noteText := NoteBoxes[0].Note.Text
-	fmt.Println("note box: ", nbId, " note id: ", noteId, " text: ", noteText)
-	fmt.Println(r.Form[nbId])
+	noteText := NoteBoxes[0].Note.Text*/
+
+
+	//fmt.Println("note box: ", nbId, " note id: ", noteId, " text: ", noteText)
+	//fmt.Println(r.Form[])
+
 
 	/*
-	Saadaan uusi teksti ja note
-	EHKÄ PITÄISI SITTENKN KÄYTTÄÄ FORMIA? VOISIKO EI-SYÖTETTYÄ DATAA LÄHETTÄÄ ESIM. PIILOTETUISSA KENTISSÄ TAI JOTAIN?
-	EHKÄ VOISI LÄHETTÄÄ FORMIN AJAXILLA? TAI EHKÄ EI?
 
 	SEURAAVAKSI SOVIETTAVA TÄMÄ TIEDOSTO HTML:N MUUTOKSIIN
 	 */
 
 	//oldNoteBoxes := NoteBoxes
-	NoteBoxes = nil
+	//NoteBoxes = nil
+	if err != nil{
+		log.Panic("err")
+	}
 	SendCalendar(w, r)
 
 }
@@ -221,4 +231,25 @@ func getNoteBoxesByInterval(life Life, start time.Time, end time.Time) []NoteBox
 	notes := getNotesByInterval(life, start, end)
 	noteBoxes := createNoteBoxes(notes)
 	return noteBoxes
+}
+
+func (l Life) getNoteById(id int) Note{
+	// PITÄISI MIELUUMMIN Notes-attribuutin olla map kuin käyttää tämmöistä luuppia. ID:iden uniikkiuskin olisi taattu.
+	for _, n := range l.Notes{
+		if n.Id == id{
+			return n
+		}
+	}
+	log.Panic("Note not found of id ", id)
+	return Note{}
+}
+
+func (l Life) replaceNote(newNote Note) Life {
+	for i, n := range l.Notes{
+		if n.Id == newNote.Id{
+			l.Notes[i] = newNote
+			break
+		}
+	}
+	return l
 }

@@ -18,17 +18,19 @@
             var start = noteBoxDiv.data("note-start");
             var end = noteBoxDiv.data("note-end");
             var text = noteBoxDiv.data("note-text");
-            console.assert(start !== undefined);
+            var id = noteBoxDiv.data("note-id");
+            /*console.assert(start !== undefined);
             console.assert(end !== undefined);
-            console.assert(text !== undefined);
-            console.log([start, end, text]);
-            noteSelectedTextInput.attr('value', text);
+            console.assert(text !== undefined);*/
+            console.assert([start, end, text, id].every(x => x !== undefined), [start, end, text, id]);
+            //console.log([start, end, text, id]);
+            $('#note-selected-text').attr('value', text);
+            $('#selected-note-id').attr('value', id);
         }
 
         function initialize(){
             console.log("intialize call'd!");
             editNoteForm = $('#edit-note-form');
-            noteSelectedTextInput = $('#note-selected-text');
             $(document).click(function(e){
                 var eventTargetJQuery = $(e.target)
                 // Split classes by whitespaces to get array of classes
@@ -71,11 +73,11 @@
     </div>
     <h3>Selected note</h3>
     <form id="edit-note-form" action="/note_changed" method="post">
-        <input type="text" id="note-selected-text" value="(None selected)">
+        <input type="text" id="note-selected-text" name="note-text" value="(None selected)">
         <p>Note beginning: <span id="note-start">(None selected)</span></p>
         <p>Note end: <span id="note-end">(None selected)</span></p>
         <input type="submit" value="Save note!">
-        <input type=hidden name="node-id" value="(None)">
+        <input id="selected-note-id" type=hidden name="note-id" value="(None)">
     </form>
 </body>
 </html>
