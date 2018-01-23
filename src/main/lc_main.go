@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/kjk/betterguid"
-	"strconv"
+	//"strconv"
 )
 
 /*
@@ -23,7 +23,7 @@ type Note struct{
 }
 
 type NoteBox struct{
-	Note Note
+	Note *Note
 	Id string // Not the same thing as Note.Id
 }
 
@@ -40,7 +40,7 @@ const(
 type Life struct{
 	Start time.Time
 	End time.Time
-	Notes []Note
+	Notes []*Note
 }
 
 type TimeBox struct {
@@ -52,7 +52,7 @@ type TimeBox struct {
 }
 
 var ResolutionUnit TimeUnit
-var TheLife Life
+var TheLife *Life
 //var NoteBoxes []NoteBox
 
 func main(){
@@ -68,13 +68,13 @@ func main(){
 func initializeData() {
 	ResolutionUnit = Month
 
-	notes := []Note{
-		Note{"Note number 1", time.Date(2017, time.February, 15, 0,0,0,0,time.UTC),
+	notes := []*Note{
+		&Note{"Note number 1", time.Date(2017, time.February, 15, 0,0,0,0,time.UTC),
 		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), 1},
-		Note{"Note number 2", time.Date(2018, time.November, 1, 0,0,0,0,time.UTC),
+		&Note{"Note number 2", time.Date(2018, time.November, 1, 0,0,0,0,time.UTC),
 			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), 2},
 	}
-	TheLife = Life{time.Date(2017, time.January, 1, 0, 0, 0, 0, time.UTC),
+	TheLife = &Life{time.Date(2017, time.January, 1, 0, 0, 0, 0, time.UTC),
 	time.Date(2019, time.January, 1, 0, 0, 0, 0, time.UTC),
 	notes}
 }
@@ -101,11 +101,11 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
-	noteId := r.Form["note-id"]
-	noteText := r.Form["note-text"]
-	noteIdString, err := strconv.Atoi(noteId[0])
-	note := TheLife.getNoteById(noteIdString)
-	TheLife.
+	//noteId := r.Form["note-id"]
+	//noteText := r.Form["note-text"]
+	//noteIdString, err := strconv.Atoi(noteId[0])
+	//note := TheLife.getNoteById(noteIdString)
+	//TheLife.
 
 	/*nbId := NoteBoxes[0].Id
 	noteId := NoteBoxes[0].Note.Id
@@ -123,14 +123,14 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 
 	//oldNoteBoxes := NoteBoxes
 	//NoteBoxes = nil
-	if err != nil{
+	/*if err != nil{
 		log.Panic("err")
-	}
+	}*/
 	SendCalendar(w, r)
 
 }
 
-func createTimeBoxes(life Life, resolutionUnit TimeUnit) []TimeBox{
+func createTimeBoxes(life *Life, resolutionUnit TimeUnit) []TimeBox{
 	/*
 	Otetaan elämän alku ja loppukohdat ja lasketaan näytettävät alku ja loppukohdat
 
@@ -198,7 +198,7 @@ func addTimeUnit(time time.Time, timeUnit TimeUnit) time.Time{
 	return time
 }
 
-func getNotesByInterval(life Life, start time.Time, end time.Time) []Note{
+func getNotesByInterval(life *Life, start time.Time, end time.Time) []*Note{
 	/*
 	Pre-condition start < end (ENTÄ JOS ON SAMA?). life.start < life.end
 	 */
@@ -206,34 +206,32 @@ func getNotesByInterval(life Life, start time.Time, end time.Time) []Note{
 	käy läpi kaikki notet lifessä
 		jos ne > is ja ns < ie
 	 */
- 	var notesInInterval []Note
- 	for i := range life.Notes{
- 		note := life.Notes[i]
- 		if note.End.After(start) && note.Start.Before(end){
-			notesInInterval = append(notesInInterval, note)
+ 	var notesInInterval []*Note
+ 	for _, n := range life.Notes{
+ 		if n.End.After(start) && n.Start.Before(end){
+			notesInInterval = append(notesInInterval, n)
 		}
 	}
 	//fmt.Println("getting notes by interval ", start, " to ", end, ". Notes returned: ", len(notesInInterval))
 	return notesInInterval
 }
 
-func createNoteBoxes(notes []Note) []NoteBox{
+func createNoteBoxes(notes []*Note) []NoteBox{
 	var noteBoxes []NoteBox
-	for i := range notes{
-		note := notes[i]
-		noteBox := NoteBox{note, betterguid.New()}
+	for _, n := range notes{
+		noteBox := NoteBox{n, betterguid.New()}
 		noteBoxes = append(noteBoxes, noteBox)
 	}
 	return noteBoxes
 }
 
-func getNoteBoxesByInterval(life Life, start time.Time, end time.Time) []NoteBox{
+func getNoteBoxesByInterval(life *Life, start time.Time, end time.Time) []NoteBox{
 	notes := getNotesByInterval(life, start, end)
 	noteBoxes := createNoteBoxes(notes)
 	return noteBoxes
 }
 
-func (l Life) getNoteById(id int) Note{
+func (l Life) getNoteById(id int) *Note{
 	// PITÄISI MIELUUMMIN Notes-attribuutin olla map kuin käyttää tämmöistä luuppia. ID:iden uniikkiuskin olisi taattu.
 	for _, n := range l.Notes{
 		if n.Id == id{
@@ -241,15 +239,14 @@ func (l Life) getNoteById(id int) Note{
 		}
 	}
 	log.Panic("Note not found of id ", id)
-	return Note{}
+	return &Note{}
 }
 
-func (l Life) replaceNote(newNote Note) Life {
+func (l *Life) replaceNote(newNote *Note) {
 	for i, n := range l.Notes{
 		if n.Id == newNote.Id{
 			l.Notes[i] = newNote
 			break
 		}
 	}
-	return l
 }
