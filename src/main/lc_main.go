@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/kjk/betterguid"
-	//"strconv"
+	"strconv"
 )
 
 /*
@@ -101,33 +101,16 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
-	//noteId := r.Form["note-id"]
-	//noteText := r.Form["note-text"]
-	//noteIdString, err := strconv.Atoi(noteId[0])
-	//note := TheLife.getNoteById(noteIdString)
-	//TheLife.
+	noteId := r.Form["note-id"][0]
+	newNoteText := r.Form["note-text"][0]
+	noteIdString, err := strconv.Atoi(noteId)
+	if err != nil{
+		log.Panic("erroneous note id")
+	}
+	note := TheLife.getNoteById(noteIdString)
+	note.Text = newNoteText
 
-	/*nbId := NoteBoxes[0].Id
-	noteId := NoteBoxes[0].Note.Id
-	noteText := NoteBoxes[0].Note.Text*/
-
-
-	//fmt.Println("note box: ", nbId, " note id: ", noteId, " text: ", noteText)
-	//fmt.Println(r.Form[])
-
-
-	/*
-
-	SEURAAVAKSI SOVIETTAVA TÄMÄ TIEDOSTO HTML:N MUUTOKSIIN
-	 */
-
-	//oldNoteBoxes := NoteBoxes
-	//NoteBoxes = nil
-	/*if err != nil{
-		log.Panic("err")
-	}*/
 	SendCalendar(w, r)
-
 }
 
 func createTimeBoxes(life *Life, resolutionUnit TimeUnit) []TimeBox{
