@@ -14,17 +14,14 @@
             var clickedButton = $(e.target);
             var noteBoxDiv = clickedButton.closest("div").filter(".js-note-box");
             console.assert(noteBoxDiv !== undefined, "noteBoxDiv undefined");
-            //console.log(noteBoxDiv);
             var start = noteBoxDiv.data("note-start");
             var end = noteBoxDiv.data("note-end");
             var text = noteBoxDiv.data("note-text");
             var id = noteBoxDiv.data("note-id");
-            /*console.assert(start !== undefined);
-            console.assert(end !== undefined);
-            console.assert(text !== undefined);*/
             console.assert([start, end, text, id].every(x => x !== undefined), [start, end, text, id]);
-            //console.log([start, end, text, id]);
             $('#note-selected-text').attr('value', text);
+            $('#note-selected-start').attr('value', start);
+            $('#note-selected-end').attr('value', end);
             $('#selected-note-id').attr('value', id);
         }
 
@@ -33,19 +30,14 @@
             editNoteForm = $('#edit-note-form');
             $(document).click(function(e){
                 var eventTargetJQuery = $(e.target)
-                // Split classes by whitespaces to get array of classes
-                var targetClasses = eventTargetJQuery.attr('class').split(/\s+/);
-                console.log("targetClasses: ");
-                console.log(targetClasses);
-                console.log(typeof targetClasses);
-                if(targetClasses.includes('js-edit-note-button')){
+                if(eventTargetJQuery.is(".js-edit-note-button")){
                     editNoteButtonClicked(e);
                 }
             });
         }
 
+        console.log("executing script");
         $(initialize);
-        console.log("asfasf");
 
     </script>
     <style>
@@ -58,10 +50,10 @@
     <div id="life-calendar">
         {{$timeBoxes := .}}
         {{range $timeBoxes}}
-            <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.Start}}" data-end="{{.End}}">
-                Time from {{.Start}} to {{.End}}
+            <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.StartAsString}}" data-end="{{.EndAsString}}">
+                Time from {{.StartAsString}} to {{.EndAsString}}
                 {{range .NoteBoxes}}
-                    <div class="js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.Start}}" data-note-end="{{.Note.End}}"
+                    <div class="js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
                             data-note-id="{{.Note.Id}}">
                         {{.Note.Text}}
                         <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
@@ -74,8 +66,12 @@
     <h3>Selected note</h3>
     <form id="edit-note-form" action="/note_changed" method="post">
         <input type="text" id="note-selected-text" name="note-text" value="(None selected)">
+        <input type="date" id="note-selected-start" name="note-start" value="(None selected)">
+        <input type="date" id="note-selected-end" name="note-end" value="(None selected)">
+        <!--
         <p>Note beginning: <span id="note-start">(None selected)</span></p>
         <p>Note end: <span id="note-end">(None selected)</span></p>
+        -->
         <input type="submit" value="Save note!">
         <input id="selected-note-id" type=hidden name="note-id" value="(None)">
     </form>

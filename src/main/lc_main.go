@@ -37,6 +37,8 @@ const(
 	Year
 )
 
+const yyMMddLayout = "2006-01-02"
+
 type Life struct{
 	Start time.Time
 	End time.Time
@@ -99,16 +101,36 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 }
 
 func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
+	//TODO: VALIDOINTI
 	r.ParseForm()
 	fmt.Println(r.Form)
 	noteId := r.Form["note-id"][0]
-	newNoteText := r.Form["note-text"][0]
+	noteText := r.Form["note-text"][0]
+	start := r.Form["note-start"][0]
+	end := r.Form["note-end"][0]
+
 	noteIdString, err := strconv.Atoi(noteId)
 	if err != nil{
 		log.Panic("erroneous note id")
 	}
+	startDate, err := time.Parse(yyMMddLayout, start)
+	if err != nil{
+		log.Panic("erroneous start date")
+	}
+	endDate, err := time.Parse(yyMMddLayout, end)
+	if err != nil{
+		log.Panic("erroneous end date")
+	}
+
+	if endDate.Before(startDate) || endDate.Equal(startDate){
+		//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
+		log.Panic("erroneous date values")
+	}
+
 	note := TheLife.getNoteById(noteIdString)
-	note.Text = newNoteText
+	note.Text = noteText
+	note.Start = startDate
+	note.End = endDate
 
 	SendCalendar(w, r)
 }
@@ -232,4 +254,26 @@ func (l *Life) replaceNote(newNote *Note) {
 			break
 		}
 	}
+}
+
+func (tb TimeBox) StartAsString() string{
+	/*
+	Returns start as string which can be inserted to HTML date input element.
+	 */
+	return tb.Start.Format(yyMMddLayout)
+}
+
+func (tb TimeBox) EndAsString() string{
+	return tb.End.Format(yyMMddLayout)
+}
+
+func (n Note) StartAsString() string{
+	/*
+	Returns start as string which can be inserted to HTML date input element.
+	 */
+	return n.Start.Format(yyMMddLayout)
+}
+
+func (n Note) EndAsString() string{
+	return n.End.Format(yyMMddLayout)
 }
