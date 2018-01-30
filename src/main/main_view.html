@@ -25,6 +25,11 @@
             $('#selected-note-id').attr('value', id);
         }
 
+        function timeBoxClicked(e){
+            console.log("time box click'd!")
+
+        }
+
         function initialize(){
             console.log("intialize call'd!");
             editNoteForm = $('#edit-note-form');
@@ -32,6 +37,9 @@
                 var eventTargetJQuery = $(e.target)
                 if(eventTargetJQuery.is(".js-edit-note-button")){
                     editNoteButtonClicked(e);
+                }
+                if(eventTargetJQuery.is(".js-time-box")){
+                    timeBoxClicked(e);
                 }
             });
         }
@@ -41,39 +49,69 @@
 
     </script>
     <style>
-        .time-box{
+        #root{
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        #life-calendar{
+            display: flex;
+            flex-wrap: wrap;
+
             border-style: solid;
+            grid-column: span 2;
+            max-width: 1000px;
+        }
+        #note-info-div{
+            border-style: solid;
+            padding: 10px;
+            grid-column: span 1;
+        }
+        .time-box {
+            border-style: solid;
+            padding: 0.2em;
+            max-width: 7em;
+            max-height: 7em;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
-    <div id="life-calendar">
-        {{$timeBoxes := .}}
-        {{range $timeBoxes}}
-            <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.StartAsString}}" data-end="{{.EndAsString}}">
-                Time from {{.StartAsString}} to {{.EndAsString}}
-                {{range .NoteBoxes}}
-                    <div class="js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
-                            data-note-id="{{.Note.Id}}">
-                        {{.Note.Text}}
-                        <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
-                        <button id={{.Id}} class="js-edit-note-button">Edit note</button>
-                    </div>
-                {{end}}
-            </div>
-        {{end}}
+    <div id="root">
+        <div id="life-calendar">
+            {{$timeBoxes := .}}
+            {{range $timeBoxes}}
+                <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.StartAsString}}" data-end="{{.EndAsString}}">
+                    Time from {{.StartAsString}} to {{.EndAsString}}
+                    {{range .NoteBoxes}}
+                        <div class="js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
+                                data-note-id="{{.Note.Id}}">
+                            {{.Note.Text}}
+                            <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
+                            <button id={{.Id}} class="js-edit-note-button">Edit note</button>
+                        </div>
+                    {{end}}
+                </div>
+            {{end}}
+        </div>
+        <div id="note-info-div">
+            <h3>Selected note</h3>
+            <form id="edit-note-form" action="/note_changed" method="post">
+                <input type="text" id="note-selected-text" name="note-text" value="(None selected)">
+                <br/>
+                <input type="date" id="note-selected-start" name="note-start" value="(None selected)">
+                <br/>
+                <input type="date" id="note-selected-end" name="note-end" value="(None selected)">
+                <br/>
+                <!--
+                <p>Note beginning: <span id="note-start">(None selected)</span></p>
+                <p>Note end: <span id="note-end">(None selected)</span></p>
+                -->
+                <input type="submit" value="Save note!">
+                <br/>
+                <input id="selected-note-id" type=hidden name="note-id" value="(None)">
+            </form>
+        </div>
     </div>
-    <h3>Selected note</h3>
-    <form id="edit-note-form" action="/note_changed" method="post">
-        <input type="text" id="note-selected-text" name="note-text" value="(None selected)">
-        <input type="date" id="note-selected-start" name="note-start" value="(None selected)">
-        <input type="date" id="note-selected-end" name="note-end" value="(None selected)">
-        <!--
-        <p>Note beginning: <span id="note-start">(None selected)</span></p>
-        <p>Note end: <span id="note-end">(None selected)</span></p>
-        -->
-        <input type="submit" value="Save note!">
-        <input id="selected-note-id" type=hidden name="note-id" value="(None)">
-    </form>
 </body>
 </html>
