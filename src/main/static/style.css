@@ -1,0 +1,40 @@
+#root{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+#life-calendar{
+    display: flex;
+    flex-wrap: wrap;
+
+    border-style: solid;
+    grid-column: span 2;
+    max-width: 1000px;
+}
+#note-info-div{
+    border-style: solid;
+    padding: 10px;
+    grid-column: span 1;
+}
+.note-box-unclickable{
+    pointer-events: none;
+}
+.note-box{
+    border: solid;
+    background-color: bisque;
+}
+.note-rep{
+    border: solid;
+    background-color: bisque;
+}
+.time-box {
+    border-style: solid;
+    padding: 0.2em;
+    max-width: 7em;
+    max-height: 7em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.time-box-interval-text{
+    background-color: aquamarine;
+    pointer-events: none;
+}
