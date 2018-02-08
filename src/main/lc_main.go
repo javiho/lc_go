@@ -8,41 +8,23 @@ import (
 	"fmt"
 	"time"
 	"github.com/kjk/betterguid"
-	"strconv"
 )
 
 /*
 Aikavälien alku in inklusiivinen ja loppu on eksklusiivinen. Niiden ei siis koskaan pidä olla sama.
  */
 
-type Note struct{
-	Text string
-	Start time.Time
-	End time.Time
-	Id int
-}
+ /*
+ uusi rakenne:
+ pää lol
+
+  */
+
+
 
 type NoteBox struct{
 	Note *Note
 	Id string // Not the same thing as Note.Id
-}
-
-type TimeUnit int
-
-//NÄMÄ VOITANEEN KORVAT time.Month ym. tyypeillä, jos viikko kuuluu niihin
-const(
-	Day TimeUnit = iota
-	Week
-	Month
-	Year
-)
-
-const yyMMddLayout = "2006-01-02"
-
-type Life struct{
-	Start time.Time
-	End time.Time
-	Notes []*Note
 }
 
 type TimeBox struct {
@@ -51,6 +33,11 @@ type TimeBox struct {
 	//Notes []Note
 	NoteBoxes []NoteBox
 	Id int
+}
+
+type LcPageVariables struct{
+	TimeBoxes []TimeBox
+	Notes []*Note
 }
 
 var ResolutionUnit TimeUnit
@@ -62,8 +49,11 @@ func main(){
 	fmt.Println("id: ", id)
 	initializeData()
 	fmt.Println("data initialized")
+
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./src/main/static"))))
 	http.HandleFunc("/", SendCalendar)
 	http.HandleFunc("/note_changed", ChangeAndSendCalendar)
+	http.HandleFunc("/note_added", AddNoteAndSendCalendar)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -72,9 +62,9 @@ func initializeData() {
 
 	notes := []*Note{
 		&Note{"Note number 1", time.Date(2017, time.February, 15, 0,0,0,0,time.UTC),
-		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), 1},
+		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), "hcNote1"},
 		&Note{"Note number 2", time.Date(2018, time.November, 1, 0,0,0,0,time.UTC),
-			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), 2},
+			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), "hcNote2"},
 	}
 	TheLife = &Life{time.Date(2017, time.January, 1, 0, 0, 0, 0, time.UTC),
 	time.Date(2019, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -83,6 +73,7 @@ func initializeData() {
 
 func SendCalendar(w http.ResponseWriter, r *http.Request){
 	timeBoxes := createTimeBoxes(TheLife, ResolutionUnit)
+	lcPageVariables := LcPageVariables{timeBoxes, TheLife.Notes}
 
 	/*for _, timeBox := range timeBoxes{
 		for _, noteBox := range timeBox.NoteBoxes{
@@ -94,7 +85,7 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 	if err != nil{
 		log.Print("template parsing error: ", err)
 	}
-	err = template.Execute(w, timeBoxes)
+	err = template.Execute(w, lcPageVariables)
 	if err != nil{
 		log.Print("template executing error: ", err)
 	}
@@ -109,10 +100,6 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	start := r.Form["note-start"][0]
 	end := r.Form["note-end"][0]
 
-	noteIdString, err := strconv.Atoi(noteId)
-	if err != nil{
-		log.Panic("erroneous note id")
-	}
 	startDate, err := time.Parse(yyMMddLayout, start)
 	if err != nil{
 		log.Panic("erroneous start date")
@@ -127,13 +114,44 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		log.Panic("erroneous date values")
 	}
 
-	note := TheLife.getNoteById(noteIdString)
+	note := TheLife.getNoteById(noteId)
 	note.Text = noteText
 	note.Start = startDate
 	note.End = endDate
 
 	SendCalendar(w, r)
 }
+
+func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
+	//TODO:
+	//TODO: VALIDOINTI
+	r.ParseForm()
+	fmt.Println(r.Form)
+	noteText := r.Form["note-text"][0]
+	start := r.Form["note-start"][0]
+	end := r.Form["note-end"][0]
+
+	startDate, err := time.Parse(yyMMddLayout, start)
+	if err != nil{
+		log.Panic("erroneous start date")
+	}
+	endDate, err := time.Parse(yyMMddLayout, end)
+	if err != nil{
+		log.Panic("erroneous end date")
+	}
+
+	if endDate.Before(startDate) || endDate.Equal(startDate){
+		//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
+		log.Panic("erroneous date values")
+	}
+
+	note := Note{noteText, startDate, endDate, betterguid.New()}
+	TheLife.addNote(&note)
+	fmt.Println("note added with id: ", note.Id)
+	SendCalendar(w, r)
+}
+
+// ROUTING ENDS HERE //
 
 func createTimeBoxes(life *Life, resolutionUnit TimeUnit) []TimeBox{
 	/*
@@ -203,24 +221,6 @@ func addTimeUnit(time time.Time, timeUnit TimeUnit) time.Time{
 	return time
 }
 
-func getNotesByInterval(life *Life, start time.Time, end time.Time) []*Note{
-	/*
-	Pre-condition start < end (ENTÄ JOS ON SAMA?). life.start < life.end
-	 */
-	/*
-	käy läpi kaikki notet lifessä
-		jos ne > is ja ns < ie
-	 */
- 	var notesInInterval []*Note
- 	for _, n := range life.Notes{
- 		if n.End.After(start) && n.Start.Before(end){
-			notesInInterval = append(notesInInterval, n)
-		}
-	}
-	//fmt.Println("getting notes by interval ", start, " to ", end, ". Notes returned: ", len(notesInInterval))
-	return notesInInterval
-}
-
 func createNoteBoxes(notes []*Note) []NoteBox{
 	var noteBoxes []NoteBox
 	for _, n := range notes{
@@ -236,26 +236,6 @@ func getNoteBoxesByInterval(life *Life, start time.Time, end time.Time) []NoteBo
 	return noteBoxes
 }
 
-func (l Life) getNoteById(id int) *Note{
-	// PITÄISI MIELUUMMIN Notes-attribuutin olla map kuin käyttää tämmöistä luuppia. ID:iden uniikkiuskin olisi taattu.
-	for _, n := range l.Notes{
-		if n.Id == id{
-			return n
-		}
-	}
-	log.Panic("Note not found of id ", id)
-	return &Note{}
-}
-
-func (l *Life) replaceNote(newNote *Note) {
-	for i, n := range l.Notes{
-		if n.Id == newNote.Id{
-			l.Notes[i] = newNote
-			break
-		}
-	}
-}
-
 func (tb TimeBox) StartAsString() string{
 	/*
 	Returns start as string which can be inserted to HTML date input element.
@@ -265,15 +245,4 @@ func (tb TimeBox) StartAsString() string{
 
 func (tb TimeBox) EndAsString() string{
 	return tb.End.Format(yyMMddLayout)
-}
-
-func (n Note) StartAsString() string{
-	/*
-	Returns start as string which can be inserted to HTML date input element.
-	 */
-	return n.Start.Format(yyMMddLayout)
-}
-
-func (n Note) EndAsString() string{
-	return n.End.Format(yyMMddLayout)
 }

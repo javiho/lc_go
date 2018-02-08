@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Main View Title</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css"/>
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
         "use strict";
@@ -25,9 +26,47 @@
             $('#selected-note-id').attr('value', id);
         }
 
+        function noteBoxClicked(e){
+            console.log("time box click'd!");
+            //OLTAVA SAMANTYYPPINEN FUNKTIO KUIN editNoteButtonClicked ja KUTSUTTAVA SITÄÖ
+
+        }
+
         function timeBoxClicked(e){
             console.log("time box click'd!")
+            var timeBox = $(e.target);
+            var noteBoxes = timeBox.find('div.js-note-box');
+            var noteIds = [];
+            //TODO: () => noteIds.push($(this).data.noteId) EI TOIMI, MUTTA MIKSI? MITEN THIS TOIMII?
+            noteBoxes.each(function() {
+                noteIds.push($(this).data('note-id'));
+            });
+            var allNoteReps = $('.js-note-rep');
+            allNoteReps.each(function(){
+                var self = $(this); // TODO: miten this toimii?
+                var noteId = self.data('note-id');
+                if(noteIds.includes(noteId)){
+                    self.show(400);
+                }else{
+                    self.hide();
+                }
+            });
+        }
 
+        function noteRepClicked(e){
+            console.log("note-rep click'd!");
+
+            var noteRep = $(e.target);
+            console.assert(noteRep !== undefined, "noteRep undefined");
+            var start = noteRep.data("note-start");
+            var end = noteRep.data("note-end");
+            var text = noteRep.data("note-text");
+            var id = noteRep.data("note-id");
+            console.assert([start, end, text, id].every(x => x !== undefined), [start, end, text, id]);
+            $('#note-selected-text').attr('value', text);
+            $('#note-selected-start').attr('value', start);
+            $('#note-selected-end').attr('value', end);
+            $('#selected-note-id').attr('value', id);
         }
 
         function initialize(){
@@ -35,11 +74,14 @@
             editNoteForm = $('#edit-note-form');
             $(document).click(function(e){
                 var eventTargetJQuery = $(e.target)
-                if(eventTargetJQuery.is(".js-edit-note-button")){
+                if(eventTargetJQuery.is(".js-note-box")){
                     editNoteButtonClicked(e);
                 }
                 if(eventTargetJQuery.is(".js-time-box")){
                     timeBoxClicked(e);
+                }
+                if(eventTargetJQuery.is(".js-note-rep")){
+                    noteRepClicked(e);
                 }
             });
         }
@@ -48,51 +90,52 @@
         $(initialize);
 
     </script>
-    <style>
-        #root{
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-        }
-        #life-calendar{
-            display: flex;
-            flex-wrap: wrap;
-
-            border-style: solid;
-            grid-column: span 2;
-            max-width: 1000px;
-        }
-        #note-info-div{
-            border-style: solid;
-            padding: 10px;
-            grid-column: span 1;
-        }
-        .time-box {
-            border-style: solid;
-            padding: 0.2em;
-            max-width: 7em;
-            max-height: 7em;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-    </style>
 </head>
 <body>
     <div id="root">
         <div id="life-calendar">
-            {{$timeBoxes := .}}
+            {{$timeBoxes := .TimeBoxes}}
             {{range $timeBoxes}}
                 <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.StartAsString}}" data-end="{{.EndAsString}}">
-                    Time from {{.StartAsString}} to {{.EndAsString}}
+                    <div class="time-box-interval-text">
+                        {{.StartAsString}} to {{.EndAsString}}
+                    </div>
                     {{range .NoteBoxes}}
-                        <div class="js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
+                        <div class="note-box-unclickable js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
                                 data-note-id="{{.Note.Id}}">
                             {{.Note.Text}}
                             <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
-                            <button id={{.Id}} class="js-edit-note-button">Edit note</button>
                         </div>
                     {{end}}
                 </div>
             {{end}}
+        </div>
+        <div id="notes-div">
+            <h3>Content of this time box</h3>
+            {{range .Notes}}
+                <div class="note-rep js-note-rep" data-note-text="{{.Text}}" data-note-start="{{.StartAsString}}"
+                     data-note-end="{{.EndAsString}}" data-note-id="{{.Id}}">
+                    {{.Text}}
+                </div>
+            {{end}}
+            <form id="new-note-form" action="/note_added" method="post">
+                Create new note:
+                <p>
+                <label for="new-note-text">Text</label>
+                <input type="text" id="new-note-text" name="note-text" value="(Placeholder)">
+                </p>
+                <p>
+                <label for="new-note-start">Start</label>
+                <input type="date" id="new-note-start" name="note-start" value="(None selected)">
+                </p>
+                <p>
+                <label for="new-note-end">End</label>
+                <input type="date" id="new-note-end" name="note-end" value="(None selected)">
+                </p>
+                <p>
+                <input type="submit" value="Create">
+                </p>
+            </form>
         </div>
         <div id="note-info-div">
             <h3>Selected note</h3>
