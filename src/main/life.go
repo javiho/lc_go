@@ -16,7 +16,7 @@ type TimeUnit int
 
 // There doesn't appear to be anything like these constants in the time package.
 const(
-	Day TimeUnit = iota + 1
+	Day TimeUnit = iota
 	Week
 	Month
 	Year
@@ -28,6 +28,42 @@ type Life struct{
 	Start time.Time
 	End time.Time
 	Notes []*Note
+}
+
+/*
+// TODO: Miksi compiler sallii tämän? Koska kyseiset constantit ovat inttejä?
+var timeUnitNamesArr = []string{
+	Day: "Day",
+	Week: "Week",
+	Month: "Month",
+	Year: "Year",
+}*/
+
+// TODO: Miten voi tehdä niin, että kovakoodaa time unitit ja niiden stringit vain kerran?
+var timeUnitStrings = []string{"Day", "Week", "Month", "Year"}
+var timeUnitFromString = map[string]TimeUnit{
+	"Day": Day,
+	"Week": Week,
+	"Month": Month,
+	"Year": Year,
+}
+
+/*func getAllTimeUnitStrings() []string{
+	tuStrings := []string{}
+	for k, _ := range timeUnitFromString{
+		tuStrings = append(tuStrings, k)
+	}
+	return tuStrings
+}*/
+
+func getStringFromTimeUnit(tu TimeUnit) string{
+	for k, v := range timeUnitFromString{
+		if tu == v{
+			return k
+		}
+	}
+	log.Panic("Erroneous parameter: ", tu)
+	return ""
 }
 
 func getNotesByInterval(life *Life, start time.Time, end time.Time) []*Note{

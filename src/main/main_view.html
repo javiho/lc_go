@@ -72,6 +72,14 @@
         function initialize(){
             console.log("intialize call'd!");
             editNoteForm = $('#edit-note-form');
+
+            // Set default selected life calendar option.
+            var defaultSelectedOptionString = $('#resolution-unit-select').data('default-selected');
+            console.log($('#resolution-unit-select').data("default-selected"));
+            console.assert(defaultSelectedOptionString !== undefined);
+            var defaultSelectedOption = $('#resolution-unit-select').find(`option[value="${defaultSelectedOptionString}"]`);
+            defaultSelectedOption.attr('selected', true);
+
             $(document).click(function(e){
                 var eventTargetJQuery = $(e.target)
                 if(eventTargetJQuery.is(".js-note-box")){
@@ -84,6 +92,12 @@
                     noteRepClicked(e);
                 }
             });
+
+            var resolutionSelect = $("#resolution-unit-select");
+            resolutionSelect.change(function() {
+                console.log("selection changed!")
+                resolutionSelect.closest("form")[0].submit();
+            });
         }
 
         console.log("executing script");
@@ -93,6 +107,18 @@
 </head>
 <body>
     <div id="root">
+        <div id="lc-options">
+            <form id="lc-options-form" action="/lc_options_changed" method="post">
+                <label for="resolution-unit-select">
+                    Select time unit:
+                </label>
+                <select id="resolution-unit-select" name="resolution-unit" form="lc-options-form" data-default-selected="{{.ResolutionUnit}}">
+                    {{range .AllResolutionUnits}}
+                        <option value="{{.}}">{{.}}</option>
+                    {{end}}
+                </select>
+            </form>
+        </div>
         <div id="life-calendar">
             {{$timeBoxes := .TimeBoxes}}
             {{range $timeBoxes}}

@@ -38,6 +38,8 @@ type TimeBox struct {
 type LcPageVariables struct{
 	TimeBoxes []TimeBox
 	Notes []*Note
+	ResolutionUnit string
+	AllResolutionUnits []string
 }
 
 var ResolutionUnit TimeUnit
@@ -54,11 +56,12 @@ func main(){
 	http.HandleFunc("/", SendCalendar)
 	http.HandleFunc("/note_changed", ChangeAndSendCalendar)
 	http.HandleFunc("/note_added", AddNoteAndSendCalendar)
+	http.HandleFunc("/lc_options_changed", ChangeLcOptionsAndSendCalendar)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func initializeData() {
-	ResolutionUnit = Month
+	ResolutionUnit = Week
 
 	notes := []*Note{
 		&Note{"Note number 1", time.Date(2017, time.February, 15, 0,0,0,0,time.UTC),
@@ -72,20 +75,22 @@ func initializeData() {
 }
 
 func SendCalendar(w http.ResponseWriter, r *http.Request){
+	//TODO: Miksi tätä funktiota kutsutaan kahdesti joka requestilla?
 	timeBoxes := createTimeBoxes(TheLife, ResolutionUnit)
-	lcPageVariables := LcPageVariables{timeBoxes, TheLife.Notes}
-
+	lcPageVariables := LcPageVariables{timeBoxes,TheLife.Notes,
+		getStringFromTimeUnit(ResolutionUnit), timeUnitStrings}
+	fmt.Println(getStringFromTimeUnit(ResolutionUnit))
 	/*for _, timeBox := range timeBoxes{
 		for _, noteBox := range timeBox.NoteBoxes{
 			NoteBoxes = append(NoteBoxes, noteBox)
 		}
 	}*/
 
-	template, err := template.ParseFiles("src/main/main_view.html")
+	templ, err := template.ParseFiles("src/main/main_view.html")
 	if err != nil{
 		log.Print("template parsing error: ", err)
 	}
-	err = template.Execute(w, lcPageVariables)
+	err = templ.Execute(w, lcPageVariables)
 	if err != nil{
 		log.Print("template executing error: ", err)
 	}
@@ -148,6 +153,16 @@ func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	note := Note{noteText, startDate, endDate, betterguid.New()}
 	TheLife.addNote(&note)
 	fmt.Println("note added with id: ", note.Id)
+	SendCalendar(w, r)
+}
+
+func ChangeLcOptionsAndSendCalendar(w http.ResponseWriter, r *http.Request){
+	r.ParseForm()
+	fmt.Println(r.Form)
+	resolutionUnitString := r.Form["resolution-unit"][0]
+	resolutionUnit := timeUnitFromString[resolutionUnitString] // TODO: entä jos on virheellinen stringi?
+	fmt.Println("new resolution unit:", resolutionUnit)
+	ResolutionUnit = resolutionUnit
 	SendCalendar(w, r)
 }
 
