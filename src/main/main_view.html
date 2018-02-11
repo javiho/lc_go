@@ -107,7 +107,7 @@
 </head>
 <body>
     <div id="root">
-        <div id="lc-options">
+        <div id="lc-options-div">
             <form id="lc-options-form" action="/lc_options_changed" method="post">
                 <label for="resolution-unit-select">
                     Select time unit:
@@ -136,50 +136,52 @@
                 </div>
             {{end}}
         </div>
-        <div id="notes-div">
-            <h3>Content of this time box</h3>
+        <div id="side-bar-div">
+            <div id="notes-div">
+                <h3>Content of this time box</h3>
             {{range .Notes}}
                 <div class="note-rep js-note-rep" data-note-text="{{.Text}}" data-note-start="{{.StartAsString}}"
                      data-note-end="{{.EndAsString}}" data-note-id="{{.Id}}">
-                    {{.Text}}
+                {{.Text}}
                 </div>
             {{end}}
-            <form id="new-note-form" action="/note_added" method="post">
-                Create new note:
-                <p>
-                <label for="new-note-text">Text</label>
-                <input type="text" id="new-note-text" name="note-text" value="(Placeholder)">
-                </p>
-                <p>
-                <label for="new-note-start">Start</label>
-                <input type="date" id="new-note-start" name="note-start" value="(None selected)">
-                </p>
-                <p>
-                <label for="new-note-end">End</label>
-                <input type="date" id="new-note-end" name="note-end" value="(None selected)">
-                </p>
-                <p>
-                <input type="submit" value="Create">
-                </p>
-            </form>
-        </div>
-        <div id="note-info-div">
-            <h3>Selected note</h3>
-            <form id="edit-note-form" action="/note_changed" method="post">
-                <input type="text" id="note-selected-text" name="note-text" value="(None selected)">
-                <br/>
-                <input type="date" id="note-selected-start" name="note-start" value="(None selected)">
-                <br/>
-                <input type="date" id="note-selected-end" name="note-end" value="(None selected)">
-                <br/>
-                <!--
-                <p>Note beginning: <span id="note-start">(None selected)</span></p>
-                <p>Note end: <span id="note-end">(None selected)</span></p>
-                -->
-                <input type="submit" value="Save note!">
-                <br/>
-                <input id="selected-note-id" type=hidden name="note-id" value="(None)">
-            </form>
+                <form id="new-note-form" action="/note_added" method="post">
+                    Create new note:
+                    <p>
+                        <label for="new-note-text">Text</label>
+                        <input type="text" id="new-note-text" name="note-text" value="(Placeholder)">
+                    </p>
+                    <p>
+                        <label for="new-note-start">Start</label>
+                        <input type="date" id="new-note-start" name="note-start" value="(None selected)">
+                    </p>
+                    <p>
+                        <label for="new-note-end">End</label>
+                        <input type="date" id="new-note-end" name="note-end" value="(None selected)">
+                    </p>
+                    <p>
+                        <input type="submit" value="Create">
+                    </p>
+                </form>
+            </div>
+            <div id="note-info-div">
+                <h3>Selected note</h3>
+                <form id="edit-note-form" action="/note_changed" method="post">
+                    <input type="text" id="note-selected-text" name="note-text" value="(None selected)">
+                    <br/>
+                    <input type="date" id="note-selected-start" name="note-start" value="(None selected)">
+                    <br/>
+                    <input type="date" id="note-selected-end" name="note-end" value="(None selected)">
+                    <br/>
+                    <!--
+                    <p>Note beginning: <span id="note-start">(None selected)</span></p>
+                    <p>Note end: <span id="note-end">(None selected)</span></p>
+                    -->
+                    <input type="submit" value="Save note!">
+                    <br/>
+                    <input id="selected-note-id" type=hidden name="note-id" value="(None)">
+                </form>
+            </div>
         </div>
     </div>
 </body>

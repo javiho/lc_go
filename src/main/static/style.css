@@ -1,41 +1,56 @@
+*{
+    box-sizing: border-box;
+}
 #root{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 2em 1fr 1fr;
+    border: 2px coral solid;
 }
 #life-calendar{
     display: flex;
     flex-wrap: wrap;
 
-    grid-column: 1 / span 2;
-    grid-row-start: 2;
-    grid-row-end: auto;
+    max-width: 80%;
+    position: absolute;
+    top: 3em;
 
-    border-style: solid;
-    max-width: 1000px;
     padding: 10px;
     background-color: powderblue;
+    border-style: solid;
+}
+#side-bar-div{
+    position: fixed;
+    /*right: 0px;
+    up: 0px;*/
+    /*width: available;*/
+    /*float: left;*/
+    left: calc(80% + 15px); /*Needed so that there is no overlap, but why is it needed?*/
 }
 #note-info-div{
-    grid-column: 3 / span 1;
-    grid-row: 3 / span 1;
+    /*grid-column: 3 / span 1;
+    grid-row: 3 / span 1;*/
 
     border-style: solid;
     padding: 10px;
 }
 #notes-div{
-    grid-column: 3 / span 1;
-    grid-row: 2 / span 1;
+    /*grid-column: 3 / span 1;
+    grid-row: 2 / span 1;*/
 
     border-style: solid;
     padding: 10px;
 }
 #lc-options-div{
-    grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
+    position: fixed;
+    left: 5px;
+    up: 0px;
+    max-height: 2em;
+    z-index: 100;
+
+    background-color: white;
+    /*grid-column: 1 / span 1;
+    grid-row: 1 / span 1;*/
 
     border-style: solid;
-    padding: 10px;
+    padding: 5px;
 }
 .note-box-unclickable{
     pointer-events: none;
