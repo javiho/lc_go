@@ -108,6 +108,23 @@ func (l *Life) addNote(newNote *Note){
 	l.Notes = append(l.Notes, newNote)
 }
 
+func (l *Life) deleteNote(deletedNote *Note){
+	// TODO: Jos toteuttaisi sort-packagen interfacen tai jotain niin voisi tehdä helpommin?
+	var indexOfNote int
+	found := false
+	for i, note := range l.Notes{
+		if note == deletedNote{
+			indexOfNote = i
+			found = true
+			break
+		}
+	}
+	if found == false{
+		log.Panic("erroneous note")
+	}
+	l.Notes = append(l.Notes[:indexOfNote], l.Notes[indexOfNote+1:]...)
+}
+
 func (n Note) StartAsString() string{
 	/*
 	Returns start as string which can be inserted to HTML date input element.

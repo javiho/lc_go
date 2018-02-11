@@ -101,28 +101,40 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
 	noteId := r.Form["note-id"][0]
-	noteText := r.Form["note-text"][0]
-	start := r.Form["note-start"][0]
-	end := r.Form["note-end"][0]
-
-	startDate, err := time.Parse(yyMMddLayout, start)
-	if err != nil{
-		log.Panic("erroneous start date")
-	}
-	endDate, err := time.Parse(yyMMddLayout, end)
-	if err != nil{
-		log.Panic("erroneous end date")
-	}
-
-	if endDate.Before(startDate) || endDate.Equal(startDate){
-		//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
-		log.Panic("erroneous date values")
-	}
-
 	note := TheLife.getNoteById(noteId)
-	note.Text = noteText
-	note.Start = startDate
-	note.End = endDate
+
+	_, isActionSave := r.Form["save-submit"]
+	_, isActionDelete := r.Form["delete-submit"]
+	if isActionSave{
+		// TODO: voisi olla omassa functiossa
+		fmt.Println("Trying to save note")
+		noteText := r.Form["note-text"][0]
+		start := r.Form["note-start"][0]
+		end := r.Form["note-end"][0]
+
+		startDate, err := time.Parse(yyMMddLayout, start)
+		if err != nil{
+			log.Panic("erroneous start date")
+		}
+		endDate, err := time.Parse(yyMMddLayout, end)
+		if err != nil{
+			log.Panic("erroneous end date")
+		}
+
+		if endDate.Before(startDate) || endDate.Equal(startDate){
+			//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
+			log.Panic("erroneous date values")
+		}
+
+		note.Text = noteText
+		note.Start = startDate
+		note.End = endDate
+	} else if isActionDelete{
+		fmt.Println("Trying to delete note")
+		TheLife.deleteNote(note)
+	} else{
+		log.Panic("erroneous submit handling")
+	}
 
 	SendCalendar(w, r)
 }
