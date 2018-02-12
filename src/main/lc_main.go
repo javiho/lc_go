@@ -38,6 +38,8 @@ type TimeBox struct {
 type LcPageVariables struct{
 	TimeBoxes []TimeBox
 	Notes []*Note
+	LifeStart string
+	LifeEnd string
 	ResolutionUnit string
 	AllResolutionUnits []string
 }
@@ -77,8 +79,8 @@ func initializeData() {
 func SendCalendar(w http.ResponseWriter, r *http.Request){
 	//TODO: Miksi tätä funktiota kutsutaan kahdesti joka requestilla?
 	timeBoxes := createTimeBoxes(TheLife, ResolutionUnit)
-	lcPageVariables := LcPageVariables{timeBoxes,TheLife.Notes,
-		getStringFromTimeUnit(ResolutionUnit), timeUnitStrings}
+	lcPageVariables := LcPageVariables{timeBoxes,TheLife.Notes, TheLife.Start.Format(yyMMddLayout),
+		TheLife.End.Format(yyMMddLayout),getStringFromTimeUnit(ResolutionUnit), timeUnitStrings}
 	fmt.Println(getStringFromTimeUnit(ResolutionUnit))
 	/*for _, timeBox := range timeBoxes{
 		for _, noteBox := range timeBox.NoteBoxes{
@@ -172,9 +174,24 @@ func ChangeLcOptionsAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
 	resolutionUnitString := r.Form["resolution-unit"][0]
+	lifeStart, err := time.Parse(yyMMddLayout, r.Form["life-start"][0])
+	if err != nil{
+		log.Panic("erroneous start date")
+	}
+	lifeEnd, err := time.Parse(yyMMddLayout, r.Form["life-end"][0])
+	if err != nil{
+		log.Panic("erroneous end date")
+	}
+	if lifeEnd.Before(lifeStart) || lifeEnd.Equal(lifeStart){
+		//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
+		log.Panic("erroneous date values")
+	}
+
 	resolutionUnit := timeUnitFromString[resolutionUnitString] // TODO: entä jos on virheellinen stringi?
 	fmt.Println("new resolution unit:", resolutionUnit)
 	ResolutionUnit = resolutionUnit
+	TheLife.Start = lifeStart
+	TheLife.End = lifeEnd
 	SendCalendar(w, r)
 }
 

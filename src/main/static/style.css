@@ -10,7 +10,7 @@
 
     max-width: 80%;
     position: absolute;
-    top: 3em;
+    top: 70px;
 
     padding: 10px;
     background-color: powderblue;
@@ -42,15 +42,14 @@
     position: fixed;
     left: 5px;
     up: 0px;
-    max-height: 2em;
+    /*max-height: 2em;*/
     z-index: 100;
 
     background-color: white;
+    border-style: solid;
+    padding: 10px;
     /*grid-column: 1 / span 1;
     grid-row: 1 / span 1;*/
-
-    border-style: solid;
-    padding: 5px;
 }
 .note-box-unclickable{
     pointer-events: none;
@@ -76,12 +75,16 @@
     background-color: aquamarine;
     pointer-events: none;
 }
+#lc-options-form label{
+    margin-left: 1em;
+    padding-right: 1em;
+}
 #new-note-form{
     margin-top: 10px;
 }
 
 /*This is for form field and caption alignment:*/
-form  { display: table;      }
-p     { display: table-row;  }
-label { display: table-cell; }
-input { display: table-cell; }
+#new-note-form { display: table; }
+#new-note-form p     { display: table-row;  }
+#new-note-form label { display: table-cell; }
+#new-note-form input { display: table-cell; }

@@ -93,10 +93,11 @@
                 }
             });
 
-            var resolutionSelect = $("#resolution-unit-select");
-            resolutionSelect.change(function() {
-                console.log("selection changed!")
-                resolutionSelect.closest("form")[0].submit();
+            var lcOptionsForm = $("#lc-options-form")
+            //var resolutionSelect = $("#resolution-unit-select");
+            lcOptionsForm.change(function() {
+                console.log("form input changed!")
+                lcOptionsForm.closest("form")[0].submit();
             });
         }
 
@@ -117,6 +118,10 @@
                         <option value="{{.}}">{{.}}</option>
                     {{end}}
                 </select>
+                <label for="life-start-input">Birth date:</label>
+                <input id="life-start-input" name="life-start" type="date" value="{{.LifeStart}}">
+                <label for="life-end-input">Estimated death date:</label>
+                <input id="life-end-input" name="life-end" type="date" value="{{.LifeEnd}}">
             </form>
         </div>
         <div id="life-calendar">
