@@ -7,8 +7,45 @@
     <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
         "use strict";
+        var timeBoxPastClass = "tb-past";
+        var timeBoxFutureClass = "tb-future";
+
         var editNoteForm;
         var noteSelectedTextInput;
+
+        function utcDateFromString(dateString){
+            //Pre-condition: dateString must be yyyy-MM-dd.
+            return new Date(dateString + 'T00:00:00.000Z'); // lol
+        }
+
+        function setPastFutureClasses(){
+            var timeBoxes = $('.js-time-box');
+            console.log(timeBoxes);
+            timeBoxes.each(function(){
+                var tb = $(this);
+                var tbEndDate = utcDateFromString(tb.data('end'));
+                //Date-objecteja voi vertailla toimivasti, vaikka ne ovat eri aikavyöhykkeellä.
+                var now = new Date();
+                // If end date is 18.2. and now is 18.2. 13:00, isPast == true.
+                // This is ok, because end date is not included in the time span.
+                var isPast = now > tbEndDate;
+                console.log("now: " + now + " end: " + tbEndDate + " past: " + isPast);
+                var pastFutureStripe = tb.find('.js-tb-past-future-stripe');
+                if(isPast){
+                    pastFutureStripe.addClass(timeBoxPastClass);
+                    pastFutureStripe.removeClass(timeBoxFutureClass);
+                    /*if(tb.hasClass(timeBoxFutureClass)){
+                        tb.removeClass(timeBoxFutureClass);
+                    }*/
+                }else{
+                    pastFutureStripe.addClass(timeBoxFutureClass);
+                    pastFutureStripe.removeClass(timeBoxPastClass);
+                    /*if(tb.hasClass(timeBoxPastClass)){
+                        tb.removeClass(timeBoxPastClass);
+                    }*/
+                }
+            })
+        }
 
         function editNoteButtonClicked(e){
             console.log("edit note button click'd!")
@@ -99,6 +136,8 @@
                 console.log("form input changed!")
                 lcOptionsForm.closest("form")[0].submit();
             });
+
+            setPastFutureClasses();
         }
 
         console.log("executing script");
@@ -128,13 +167,16 @@
             {{$timeBoxes := .TimeBoxes}}
             {{range $timeBoxes}}
                 <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.StartAsString}}" data-end="{{.EndAsString}}">
-                    <div class="time-box-interval-text">
+                    <div class="time-box-interval-text js-past-future-coloring">
                         {{.StartAsString}} to {{.EndAsString}}
                     </div>
+                    <div class="tb-past-future-stripe js-tb-past-future-stripe"></div>
                     {{range .NoteBoxes}}
-                        <div class="note-box-unclickable js-note-box" data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
+                        <div class="note-box-unclickable js-note-box"
+                                data-categories="{{range .Note.Categories}}{{.Name}} {{end}}"
+                                data-note-text="{{.Note.Text}}" data-note-start="{{.Note.StartAsString}}" data-note-end="{{.Note.EndAsString}}"
                                 data-note-id="{{.Note.Id}}">
-                            {{.Note.Text}}
+                            <div>{{.Note.Text}}</div>
                             <!-- <input type="text" name={{.Id}} data-note-id={{.Note.Id}} value={{.Note.Text}}> -->
                         </div>
                     {{end}}

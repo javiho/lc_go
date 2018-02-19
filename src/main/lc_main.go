@@ -42,10 +42,12 @@ type LcPageVariables struct{
 	LifeEnd string
 	ResolutionUnit string
 	AllResolutionUnits []string
+	TrueTime time.Time
 }
 
 var ResolutionUnit TimeUnit
 var TheLife *Life
+var AllCategories []*Category
 //var NoteBoxes []NoteBox
 
 func main(){
@@ -65,11 +67,14 @@ func main(){
 func initializeData() {
 	ResolutionUnit = Week
 
+	catEgory := &Category{"Cat1"}
+	dogCategory := &Category{"Dog1"}
+	AllCategories = []*Category{catEgory, dogCategory}
 	notes := []*Note{
 		&Note{"Note number 1", time.Date(2017, time.February, 15, 0,0,0,0,time.UTC),
-		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), "hcNote1"},
+		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), []*Category{catEgory}, "hcNote1"},
 		&Note{"Note number 2", time.Date(2018, time.November, 1, 0,0,0,0,time.UTC),
-			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), "hcNote2"},
+			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), []*Category{dogCategory}, "hcNote2"},
 	}
 	TheLife = &Life{time.Date(2017, time.January, 1, 0, 0, 0, 0, time.UTC),
 	time.Date(2019, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -80,7 +85,7 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 	//TODO: Miksi tätä funktiota kutsutaan kahdesti joka requestilla?
 	timeBoxes := createTimeBoxes(TheLife, ResolutionUnit)
 	lcPageVariables := LcPageVariables{timeBoxes,TheLife.Notes, TheLife.Start.Format(yyMMddLayout),
-		TheLife.End.Format(yyMMddLayout),getStringFromTimeUnit(ResolutionUnit), timeUnitStrings}
+		TheLife.End.Format(yyMMddLayout),getStringFromTimeUnit(ResolutionUnit), timeUnitStrings, time.Now()}
 	fmt.Println(getStringFromTimeUnit(ResolutionUnit))
 	/*for _, timeBox := range timeBoxes{
 		for _, noteBox := range timeBox.NoteBoxes{
@@ -164,7 +169,7 @@ func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		log.Panic("erroneous date values")
 	}
 
-	note := Note{noteText, startDate, endDate, betterguid.New()}
+	note := Note{noteText, startDate, endDate, []*Category{}, betterguid.New()}
 	TheLife.addNote(&note)
 	fmt.Println("note added with id: ", note.Id)
 	SendCalendar(w, r)

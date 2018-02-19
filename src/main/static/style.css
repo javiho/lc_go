@@ -71,16 +71,29 @@
     overflow: hidden;
     background-color: white;
 }
-.time-box-interval-text{
-    background-color: aquamarine;
-    pointer-events: none;
-}
 #lc-options-form label{
     margin-left: 1em;
     padding-right: 1em;
 }
 #new-note-form{
     margin-top: 10px;
+}
+
+.tb-past{
+    background-color: red;
+}
+
+.tb-future{
+    background-color: green;
+}
+
+.time-box-interval-text{
+    background-color: aquamarine;
+    pointer-events: none;
+}
+
+.tb-past-future-stripe{
+    min-height: 10px;
 }
 
 /*This is for form field and caption alignment:*/
