@@ -20,7 +20,7 @@
 
         function setPastFutureClasses(){
             var timeBoxes = $('.js-time-box');
-            console.log(timeBoxes);
+            //console.log(timeBoxes);
             timeBoxes.each(function(){
                 var tb = $(this);
                 var tbEndDate = utcDateFromString(tb.data('end'));
@@ -29,7 +29,7 @@
                 // If end date is 18.2. and now is 18.2. 13:00, isPast == true.
                 // This is ok, because end date is not included in the time span.
                 var isPast = now > tbEndDate;
-                console.log("now: " + now + " end: " + tbEndDate + " past: " + isPast);
+                //console.log("now: " + now + " end: " + tbEndDate + " past: " + isPast);
                 var pastFutureStripe = tb.find('.js-tb-past-future-stripe');
                 if(isPast){
                     pastFutureStripe.addClass(timeBoxPastClass);
@@ -134,10 +134,29 @@
             //var resolutionSelect = $("#resolution-unit-select");
             lcOptionsForm.change(function() {
                 console.log("form input changed!")
+                //TODO: ensin pitää validoida!
                 lcOptionsForm.closest("form")[0].submit();
             });
 
             setPastFutureClasses();
+
+            // Display error messages only if there are any.
+            var serverErrorMessages = $('.js-server-error-message');
+            console.log(serverErrorMessages);
+            if(serverErrorMessages.length > 0){
+                var allMessages = [];
+                console.log("length > 0");
+                console.log("ps:");
+                console.log()
+                var errorMessagesDiv = $('#server-error-messages-div');
+                errorMessagesDiv.find('p').each(function(){
+                    console.log("loopin'");
+                    console.log("this: " + $(this));
+                    console.log("this texr: " + $(this).text());
+                    allMessages.push($(this).text());
+                });
+                alert(allMessages.join('\n'));
+            }
         }
 
         console.log("executing script");
@@ -231,6 +250,15 @@
                 </form>
             </div>
         </div>
+    </div>
+
+
+    <!-- Possible error messages from server -->
+    <div id="server-error-messages-div" hidden>
+        <p>The following errors occurred:</p>
+        {{range .Errors}}
+            <p class="js-server-error-message">{{.}}</p>
+        {{end}}
     </div>
 </body>
 </html>

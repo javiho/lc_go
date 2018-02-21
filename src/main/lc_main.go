@@ -43,6 +43,7 @@ type LcPageVariables struct{
 	ResolutionUnit string
 	AllResolutionUnits []string
 	TrueTime time.Time
+	Errors []string
 }
 
 var ResolutionUnit TimeUnit
@@ -57,7 +58,8 @@ func main(){
 	fmt.Println("data initialized")
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./src/main/static"))))
-	http.HandleFunc("/", SendCalendar)
+	http.HandleFunc("/favicon.ico", SendNothing)
+	http.HandleFunc("/", SendDefaultView)
 	http.HandleFunc("/note_changed", ChangeAndSendCalendar)
 	http.HandleFunc("/note_added", AddNoteAndSendCalendar)
 	http.HandleFunc("/lc_options_changed", ChangeLcOptionsAndSendCalendar)
@@ -81,12 +83,15 @@ func initializeData() {
 	notes}
 }
 
-func SendCalendar(w http.ResponseWriter, r *http.Request){
+func SendCalendar(w http.ResponseWriter, r *http.Request, errorsForClient []string){
 	//TODO: Miksi tätä funktiota kutsutaan kahdesti joka requestilla?
+	fmt.Println("SendCalendar called")
 	timeBoxes := createTimeBoxes(TheLife, ResolutionUnit)
 	lcPageVariables := LcPageVariables{timeBoxes,TheLife.Notes, TheLife.Start.Format(yyMMddLayout),
-		TheLife.End.Format(yyMMddLayout),getStringFromTimeUnit(ResolutionUnit), timeUnitStrings, time.Now()}
-	fmt.Println(getStringFromTimeUnit(ResolutionUnit))
+		TheLife.End.Format(yyMMddLayout),getStringFromTimeUnit(ResolutionUnit), timeUnitStrings,
+		time.Now(), errorsForClient}
+	fmt.Println(errorsForClient)
+	//fmt.Println(getStringFromTimeUnit(ResolutionUnit))
 	/*for _, timeBox := range timeBoxes{
 		for _, noteBox := range timeBox.NoteBoxes{
 			NoteBoxes = append(NoteBoxes, noteBox)
@@ -103,6 +108,11 @@ func SendCalendar(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func SendDefaultView(w http.ResponseWriter, r *http.Request){
+	fmt.Println("SendDefaultView called")
+	SendCalendar(w, r, []string{})
+}
+
 func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	//TODO: VALIDOINTI
 	r.ParseForm()
@@ -116,9 +126,19 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		// TODO: voisi olla omassa functiossa
 		fmt.Println("Trying to save note")
 		noteText := r.Form["note-text"][0]
-		start := r.Form["note-start"][0]
-		end := r.Form["note-end"][0]
+		//startDate := r.Form["note-start"][0]
+		//endDate := r.Form["note-end"][0]
 
+		dates, lesUnparsebles, errorMessages := parseStartAndEndDates(r.Form["note-start"][0], r.Form["note-end"][0])
+		if lesUnparsebles{
+			log.Println("parse error")
+			SendCalendar(w, r, errorMessages)
+			return
+		}
+		startDate := dates[0]
+		endDate := dates[1]
+		/*
+		var errorsForClient []string
 		startDate, err := time.Parse(yyMMddLayout, start)
 		if err != nil{
 			log.Panic("erroneous start date")
@@ -127,10 +147,12 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		if err != nil{
 			log.Panic("erroneous end date")
 		}
-
+		*/
 		if endDate.Before(startDate) || endDate.Equal(startDate){
 			//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
-			log.Panic("erroneous date values")
+			log.Println("erroneous date values")
+			SendCalendar(w, r, []string{"End date not after start date."})
+			return
 		}
 
 		note.Text = noteText
@@ -143,7 +165,7 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		log.Panic("erroneous submit handling")
 	}
 
-	SendCalendar(w, r)
+	SendCalendar(w, r, []string{})
 }
 
 func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
@@ -152,52 +174,105 @@ func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
 	noteText := r.Form["note-text"][0]
-	start := r.Form["note-start"][0]
-	end := r.Form["note-end"][0]
+	//start := r.Form["note-start"][0]
+	//end := r.Form["note-end"][0]
+	dates, lesUnparsebles, errorMessages := parseStartAndEndDates(r.Form["note-start"][0], r.Form["note-end"][0])
+	if lesUnparsebles{
+		log.Println("parse error")
+		SendCalendar(w, r, errorMessages)
+		return
+	}
+	startDate := dates[0]
+	endDate := dates[1]
 
-	startDate, err := time.Parse(yyMMddLayout, start)
-	if err != nil{
-		log.Panic("erroneous start date")
+	/*var errorsForClient []string
+	startDate, err1 := time.Parse(yyMMddLayout, start)
+	_, parseErrorOccurred1 := err1.(*time.ParseError)
+	if parseErrorOccurred1{
+		errorsForClient = append(errorsForClient, "Erroneous start date.")
 	}
-	endDate, err := time.Parse(yyMMddLayout, end)
-	if err != nil{
-		log.Panic("erroneous end date")
+	endDate, err2 := time.Parse(yyMMddLayout, end)
+	_, parseErrorOccurred2 := err2.(*time.ParseError)
+	if parseErrorOccurred2{
+		errorsForClient = append(errorsForClient, "Erroneous end date.")
 	}
+	if !parseErrorOccurred1 || !parseErrorOccurred2{
+		log.Println("parse error")
+		SendCalendar(w, r, errorsForClient)
+		return
+	}
+	if err1 != nil || err2 != nil{
+		log.Panic("Unexpected error")
+	}*/
 
 	if endDate.Before(startDate) || endDate.Equal(startDate){
-		//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
-		log.Panic("erroneous date values")
+		log.Println("erroneous date values")
+		SendCalendar(w, r, []string{"End date not after start date."})
+		return
 	}
 
 	note := Note{noteText, startDate, endDate, []*Category{}, betterguid.New()}
 	TheLife.addNote(&note)
 	fmt.Println("note added with id: ", note.Id)
-	SendCalendar(w, r)
+	SendCalendar(w, r, []string{})
 }
 
 func ChangeLcOptionsAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
 	resolutionUnitString := r.Form["resolution-unit"][0]
-	lifeStart, err := time.Parse(yyMMddLayout, r.Form["life-start"][0])
-	if err != nil{
-		log.Panic("erroneous start date")
+	//lifeStart, err1 := time.Parse(yyMMddLayout, r.Form["life-start"][0])
+	//_, parseErrorOccurred1 := err1.(*time.ParseError) // TODO: jos * ottaa pois, niin editorin mukaan virhe. Miksi?
+	//var errorsForClient []string
+	// TODO: miten virheidenkäsittely pitäisi tehdä tässä?
+	dates, lesUnparsables, errorMessages := parseStartAndEndDates(r.Form["life-start"][0], r.Form["life-end"][0])
+	if lesUnparsables {
+		log.Println("parse error")
+		SendCalendar(w, r, errorMessages)
+		return
 	}
-	lifeEnd, err := time.Parse(yyMMddLayout, r.Form["life-end"][0])
-	if err != nil{
-		log.Panic("erroneous end date")
+	lifeStart := dates[0]
+	lifeEnd := dates[1]
+	/*
+	if parseErrorOccurred1{
+		errorsForClient = append(errorsForClient, "Erroneous start date value.")
 	}
+	if !parseErrorOccurred1 && err1 != nil{
+		log.Panic(err1)
+	}
+
+	lifeEnd, err2 := time.Parse(yyMMddLayout, r.Form["life-end"][0])
+	_, parseErrorOccurred2 := err2.(*time.ParseError) // TODO: jos * ottaa pois, niin editorin mukaan virhe. Miksi?
+	if parseErrorOccurred2{
+		errorsForClient = append(errorsForClient, "Erroneous end date value.")
+	}
+	if !parseErrorOccurred2 && err2 != nil{
+		log.Panic(err2)
+	}
+
+	if parseErrorOccurred1 || parseErrorOccurred2{
+		log.Println("erroneous date values: parse error")
+		SendCalendar(w, r, errorsForClient)
+		return
+	}
+	*/
 	if lifeEnd.Before(lifeStart) || lifeEnd.Equal(lifeStart){
 		//TODO: tästä pitäisi tämän sijaan ilmoittaa käyttäjälle, jtota hän voi korjata arvot.
-		log.Panic("erroneous date values")
+		log.Println("erroneous date values: erroneous chronology")
+		SendCalendar(w, r, []string{"Start date must be before end date."})
+		return
 	}
 
 	resolutionUnit := timeUnitFromString[resolutionUnitString] // TODO: entä jos on virheellinen stringi?
-	fmt.Println("new resolution unit:", resolutionUnit)
+	//fmt.Println("new resolution unit:", resolutionUnit)
 	ResolutionUnit = resolutionUnit
 	TheLife.Start = lifeStart
 	TheLife.End = lifeEnd
-	SendCalendar(w, r)
+	SendCalendar(w, r, []string{})
+}
+
+func SendNothing(w http.ResponseWriter, r *http.Request){
+	return
 }
 
 // ROUTING ENDS HERE //
@@ -211,6 +286,9 @@ func createTimeBoxes(life *Life, resolutionUnit TimeUnit) []TimeBox{
 	liikutaan eteenpäin resoluutioyksikön verran ja toistetaan edellinen
 	tätä jatketaan, kunnes elämän loppupäivän ssältävä resoluutioaikaväli on lisätty listaan
 	 */
+ 	if life.Start.After(life.End) || life.Start.Equal(life.End){
+ 		log.Panic("Life start not before life end.")
+	}
 	var timeBoxes []TimeBox
 	counter := 0
  	adjustedLifeStart := getFirstDateOfTimeUnit(life.Start, resolutionUnit)
@@ -294,4 +372,29 @@ func (tb TimeBox) StartAsString() string{
 
 func (tb TimeBox) EndAsString() string{
 	return tb.End.Format(yyMMddLayout)
+}
+
+func parseStartAndEndDates(d1string string, d2string string) ([]time.Time, bool, []string){
+	/*
+	Returns parsed dates, if parse errors occurred, the error messages for client.
+	 */
+	d1, err1 := time.Parse(yyMMddLayout, d1string)
+	d2, err2 := time.Parse(yyMMddLayout, d2string)
+	var errorMessages []string
+	_, parseErrorOccurred1 := err1.(*time.ParseError) // TODO: jos * ottaa pois, niin editorin mukaan virhe. Miksi?
+	_, parseErrorOccurred2 := err2.(*time.ParseError) // TODO: jos * ottaa pois, niin editorin mukaan virhe. Miksi?
+	if parseErrorOccurred1{
+		errorMessages = append(errorMessages, "Parse error of start date")
+	}
+	if parseErrorOccurred2{
+		errorMessages = append(errorMessages, "Parse error of end date")
+	}
+	if err1 != nil && !parseErrorOccurred1{
+		log.Panic("bug")
+	}
+	if err2 != nil && !parseErrorOccurred2{
+		log.Panic("bug")
+	}
+	parseErrorsOccurred := parseErrorOccurred1 || parseErrorOccurred2
+	return []time.Time{d1, d2}, parseErrorsOccurred, errorMessages
 }
