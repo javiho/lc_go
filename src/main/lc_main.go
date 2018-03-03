@@ -51,6 +51,8 @@ var TheLife *Life
 var AllCategories []*Category
 //var NoteBoxes []NoteBox
 
+// TODO: näissä handle functioissa on duplikoitu ja replikoitu vähän turhan raskaalla kädellä.
+
 func main(){
 	id := betterguid.New()
 	fmt.Println("id: ", id)
@@ -118,14 +120,27 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
 	noteId := r.Form["note-id"][0]
-	note := TheLife.getNoteById(noteId)
+	var note *Note
+	if TheLife.doesNoteExist(noteId){
+		note = TheLife.getNoteById(noteId)
+	}else{
+		log.Println("note id of ", noteId, "doesn't exist")
+		SendCalendar(w, r, []string{"No valid note selected."})
+		return
+	}
 
 	_, isActionSave := r.Form["save-submit"]
 	_, isActionDelete := r.Form["delete-submit"]
 	if isActionSave{
 		// TODO: voisi olla omassa functiossa
+		// TODO: nyt luovuttaa ensimmäisen virheen sattuessa, mutta voisi lähettää ne kaikki käyttäjälle niin kuin oli alunperin tarkoitus.
 		fmt.Println("Trying to save note")
 		noteText := r.Form["note-text"][0]
+		if noteText == ""{
+			log.Println("empty note text, not allow'd!")
+			SendCalendar(w, r, []string{"Note text can't be empty."})
+			return
+		}
 		//startDate := r.Form["note-start"][0]
 		//endDate := r.Form["note-end"][0]
 
@@ -174,10 +189,15 @@ func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	fmt.Println(r.Form)
 	noteText := r.Form["note-text"][0]
+	if noteText == ""{
+		log.Println("empty note text, not allow'd!")
+		SendCalendar(w, r, []string{"Note text can't be empty."})
+		return
+	}
 	//start := r.Form["note-start"][0]
 	//end := r.Form["note-end"][0]
-	dates, lesUnparsebles, errorMessages := parseStartAndEndDates(r.Form["note-start"][0], r.Form["note-end"][0])
-	if lesUnparsebles{
+	dates, lesUnparsables, errorMessages := parseStartAndEndDates(r.Form["note-start"][0], r.Form["note-end"][0])
+	if lesUnparsables{
 		log.Println("parse error")
 		SendCalendar(w, r, errorMessages)
 		return

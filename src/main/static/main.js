@@ -1,9 +1,14 @@
 "use strict";
 var timeBoxPastClass = "tb-past";
 var timeBoxFutureClass = "tb-future";
+var jsErrorInfoIconClass = '.js-error-info-icon';
 
 var editNoteForm;
 var noteSelectedTextInput;
+var lcOptionsForm;
+
+const MIN_YEAR = 1905;
+const MAX_YEAR = 2195;
 
 function utcDateFromString(dateString){
     //Pre-condition: dateString must be yyyy-MM-dd.
@@ -80,7 +85,6 @@ function timeBoxClicked(e){
             self.hide();
         }
     });
-    //TODO: uusi note -lomakkeen päivät asetettava
     var tbStart = timeBox.data('start');
     var tbEnd = timeBox.data('end');
     $('#new-note-start').attr('value', tbStart);
@@ -103,6 +107,66 @@ function noteRepClicked(e){
     $('#selected-note-id').attr('value', id);
 }
 
+function toDate(dateStr) {
+    //console.log("dateStr:");
+    //console.log(dateStr);
+    //const [day, month, year] = dateStr.split("-"); // TODO: Mikä tämä syntaksi on?
+    //return new Date(year, month - 1, day);
+    var dateComponents = dateStr.split("-");
+    var date = new Date(dateComponents[0], dateComponents[1] - 1, dateComponents[2]);
+    //console.log(date);
+    return date;
+}
+
+function validateLifeOptionsForm(){
+    console.log("form input changed!")
+    var lifeStartInput = $('#life-start-input');
+    var lifeEndInput = $('#life-end-input');
+    lifeStartInput[0].setCustomValidity("");
+    lifeEndInput[0].setCustomValidity("");
+    //console.log("end check validity:", lifeEndInput[0].checkValidity());
+    // lifeEndInput.attr('value') returns the original (not selected by user) value. TODO: MIKSI?
+    var lifeStartDate = toDate(lifeStartInput[0].value);
+    var lifeEndDate = toDate(lifeEndInput[0].value);
+    var mess = `Minimum year is ${MIN_YEAR} and maximum year is ${MAX_YEAR}.`;
+    if(lifeStartDate.getUTCFullYear() < MIN_YEAR || lifeStartDate.getUTCFullYear() > MAX_YEAR){
+        //console.log(`Minimum year is ${MIN_YEAR} and maximum year is ${MAX_YEAR}.`);
+        lifeStartInput[0].setCustomValidity(mess);
+    }
+    if(lifeEndDate.getUTCFullYear() > MAX_YEAR || lifeEndDate.getUTCFullYear() < MIN_YEAR){
+        lifeEndInput[0].setCustomValidity(mess);
+    }
+    if(lifeStartDate >= lifeEndDate){
+        mess = "Birth date must be before estimated death date.";
+        console.log("Birth date must be before estimated death date.");
+        lifeStartInput[0].setCustomValidity(mess);
+        lifeEndInput[0].setCustomValidity(mess);
+    }
+    if(lifeStartInput[0].checkValidity() && lifeEndInput[0].checkValidity()){
+        //console.log("submitting life option form!");
+        lcOptionsForm.closest("form")[0].submit();
+    }else{
+        var closestInfoIcon = lifeStartInput.next(jsErrorInfoIconClass);
+        if(!lifeStartInput[0].checkValidity()){
+            closestInfoIcon.css("visibility", "visible");
+            closestInfoIcon.attr("title", lifeStartInput[0].validationMessage);
+        }else{
+            closestInfoIcon.css("visibility", "hidden");
+        }
+        closestInfoIcon = lifeEndInput.next(jsErrorInfoIconClass);
+        if(!lifeEndInput[0].checkValidity()){
+            closestInfoIcon.attr("title", lifeEndInput[0].validationMessage);
+            closestInfoIcon.css("visibility", "visible");
+        }else{
+            closestInfoIcon.css("visibility", "hidden");
+        }
+    }
+    // TODO: kommentti:
+    // No niin elikkä html:n validaatiokuplat näkyvät vain jos submitataab submit napun kautta (ei submit() function)
+    // ks. https://stackoverflow.com/questions/16707743/html5-validation-when-the-input-type-is-not-submit/31741546
+    // Eli voi tehdä piilotetu nsubmit nappulan tai säätää omat validaatio messagen displayaamiset.
+}
+
 function initialize(){
     console.log("intialize call'd!");
     editNoteForm = $('#edit-note-form');
@@ -113,6 +177,8 @@ function initialize(){
     console.assert(defaultSelectedOptionString !== undefined);
     var defaultSelectedOption = $('#resolution-unit-select').find(`option[value="${defaultSelectedOptionString}"]`);
     defaultSelectedOption.attr('selected', true);
+
+    $(jsErrorInfoIconClass).css("visibility", "hidden");
 
     $(document).click(function(e){
         var eventTargetJQuery = $(e.target)
@@ -127,16 +193,8 @@ function initialize(){
         }
     });
 
-    var lcOptionsForm = $("#lc-options-form")
-    //var resolutionSelect = $("#resolution-unit-select");
-    lcOptionsForm.change(function() {
-        console.log("form input changed!")
-        //TODO: ensin pitää validoida - vai pitääkö?
-        // TODO: requider huolehtii, että päivämäärän arvo on validi (mutta vain jos se on ylipäätään laitettu)
-        // TODO: lisäksi voisi validoida että loppu on alun jälkeen
-        // TODO: mutta pitäisi ainakin antaa mahdollisuus kirjoittaa loppuun vuosi!
-        lcOptionsForm.closest("form")[0].submit();
-    });
+    lcOptionsForm = $("#lc-options-form");
+    lcOptionsForm.change(validateLifeOptionsForm);
 
     setPastFutureClasses();
 
@@ -150,6 +208,11 @@ function initialize(){
         });
         alert(allMessages.join('\n'));
     }
+
+    // Set validation things
+    var lifeStartInput = $('#life-start-input')[0];
+    var lifeEndInput = $('#life-end-input')[0];
+
 }
 
 console.log("executing script");

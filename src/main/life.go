@@ -89,8 +89,17 @@ func getNotesByInterval(life *Life, start time.Time, end time.Time) []*Note{
 	return notesInInterval
 }
 
+func (l Life) doesNoteExist(id string) bool{
+	for _, n := range l.Notes{
+		if n.Id == id{
+			return true
+		}
+	}
+	return false
+}
+
 func (l Life) getNoteById(id string) *Note{
-	// PITÄISI MIELUUMMIN Notes-attribuutin olla map kuin käyttää tämmöistä luuppia. ID:iden uniikkiuskin olisi taattu.
+	// TODO: PITÄISI MIELUUMMIN Notes-attribuutin olla map kuin käyttää tämmöistä luuppia. ID:iden uniikkiuskin olisi taattu.
 	for _, n := range l.Notes{
 		if n.Id == id{
 			return n

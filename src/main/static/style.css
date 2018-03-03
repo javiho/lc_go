@@ -96,6 +96,14 @@
     min-height: 10px;
 }
 
+input:invalid{
+    background-color: red;
+}
+
+.js-error-info-icon{
+    border: 1px solid red;
+}
+
 /*This is for form field and caption alignment:*/
 #new-note-form { display: table; }
 #new-note-form p     { display: table-row;  }

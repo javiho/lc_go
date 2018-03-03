@@ -20,9 +20,11 @@
                     {{end}}
                 </select>
                 <label for="life-start-input">Birth date:</label>
-                <input id="life-start-input" name="life-start" type="date" value="{{.LifeStart}}">
+                <input id="life-start-input" name="life-start" type="date" value="{{.LifeStart}}" min="1910-01-01" max="2200-01-01" required>
+                <span class="js-error-info-icon">🛈</span>
                 <label for="life-end-input">Estimated death date:</label>
-                <input id="life-end-input" name="life-end" type="date" value="{{.LifeEnd}}">
+                <input id="life-end-input" name="life-end" type="date" value="{{.LifeEnd}}" min="1910-01-01" max="2200-01-01" required>
+                <span class="js-error-info-icon">🛈</span>
             </form>
         </div>
         <div id="life-calendar">
