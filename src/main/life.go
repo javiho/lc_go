@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 	"log"
+	"strconv"
 )
 
 type Note struct{
@@ -148,4 +149,49 @@ func (n Note) StartAsString() string{
 
 func (n Note) EndAsString() string{
 	return n.End.Format(yyMMddLayout)
+}
+
+func (tb TimeBox) IntervalAsPresentableString(resolutionUnitString string) string{
+	resolutionUnit := timeUnitFromString[resolutionUnitString]
+	return intervalToPresentableString(tb.Start, tb.End, resolutionUnit)
+}
+
+func intervalToPresentableString(d1 time.Time, exclusiveD2 time.Time, resolutionUnit TimeUnit) string{
+	/*
+	Precondition: if resolutionUnit == Day, d1 == d2.
+	(date1, date2, Day) -> 01.01.2018
+	(date1, date2, Week) -> Week 1 of 2018 (vuodenvaihteessa ks. https://golang.org/pkg/time/#Time.ISOWeek)
+	(date1, date2, Month) -> 1/2018
+	year no mikäköhän
+	 */
+ 	d2 := exclusiveD2.AddDate(0, 0, -1) // Now d1 and d2 should be in same resolutionUnit.
+	if resolutionUnit == Day{
+		if d1 != d2{
+			log.Panic("resolutionUnit == Day, d1 != d2")
+		}
+		return d1.Format(yyMMddLayout)
+	}else if resolutionUnit == Week{
+		year, week := d1.ISOWeek()
+		_, week2 := d2.ISOWeek()
+		if week != week2{
+			log.Panic("dates in different week")
+		}
+		return strconv.Itoa(year) + "W" + strconv.Itoa(week)
+	}else if resolutionUnit == Month{
+		year, month, _ := d1.Date()
+		_, month2, _ := d2.Date()
+		if month != month2{
+			log.Panic("dates in different month")
+		}
+		return strconv.Itoa(int(month)) + "/" + strconv.Itoa(year)
+	}else if resolutionUnit == Year{
+		year, _, _ := d1.Date()
+		year2, _, _ := d2.Date()
+		if year != year2{
+			log.Panic("dates in different year")
+		}
+		return strconv.Itoa(year)
+	}
+	log.Panic("bug")
+	return ""
 }

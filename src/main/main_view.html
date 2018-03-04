@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{{$root := .}}
 <head>
     <meta charset="UTF-8">
     <title>Main View Title</title>
@@ -32,7 +33,7 @@
             {{range $timeBoxes}}
                 <div data-id="{{.Id}}" class="time-box js-time-box" data-start="{{.StartAsString}}" data-end="{{.EndAsString}}">
                     <div class="time-box-interval-text js-past-future-coloring">
-                        {{.StartAsString}} to {{.EndAsString}}
+                        {{.IntervalAsPresentableString $root.ResolutionUnit}}
                     </div>
                     <div class="tb-past-future-stripe js-tb-past-future-stripe"></div>
                     {{range .NoteBoxes}}
