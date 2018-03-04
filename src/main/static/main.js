@@ -200,6 +200,17 @@ function initialize(){
 
     setPastFutureClasses();
 
+    $('.js-note-box').each(function(){
+        var self = $(this);
+        var color = self.data('note-color');
+        self.css('background-color', color);
+    });
+    $('.js-note-rep').each(function(){
+        var self = $(this);
+        var color = self.data('note-color');
+        self.css('background-color', color);
+    });
+
     // Display error messages only if there are any.
     var serverErrorMessages = $('.js-server-error-message');
     if(serverErrorMessages.length > 0){
