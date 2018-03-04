@@ -76,9 +76,9 @@ func initializeData() {
 	AllCategories = []*Category{catEgory, dogCategory}
 	notes := []*Note{
 		&Note{"Note number 1", time.Date(2017, time.February, 15, 0,0,0,0,time.UTC),
-		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), []*Category{catEgory}, "hcNote1"},
+		time.Date(2017, time.April, 1, 0,0,0,0,time.UTC), "#0000ff",[]*Category{catEgory}, "hcNote1"},
 		&Note{"Note number 2", time.Date(2018, time.November, 1, 0,0,0,0,time.UTC),
-			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), []*Category{dogCategory}, "hcNote2"},
+			time.Date(2018, time.November, 15, 0,0,0,0,time.UTC), "#00ff00", []*Category{dogCategory}, "hcNote2"},
 	}
 	TheLife = &Life{time.Date(2017, time.January, 1, 0, 0, 0, 0, time.UTC),
 	time.Date(2019, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -141,6 +141,7 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 			SendCalendar(w, r, []string{"Note text can't be empty."})
 			return
 		}
+		colorHexString := r.Form["note-color"][0]
 		//startDate := r.Form["note-start"][0]
 		//endDate := r.Form["note-end"][0]
 
@@ -171,6 +172,7 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		}
 
 		note.Text = noteText
+		note.Color = colorHexString
 		note.Start = startDate
 		note.End = endDate
 	} else if isActionDelete{
@@ -184,8 +186,6 @@ func ChangeAndSendCalendar(w http.ResponseWriter, r *http.Request){
 }
 
 func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
-	//TODO:
-	//TODO: VALIDOINTI
 	r.ParseForm()
 	fmt.Println(r.Form)
 	noteText := r.Form["note-text"][0]
@@ -194,6 +194,7 @@ func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		SendCalendar(w, r, []string{"Note text can't be empty."})
 		return
 	}
+	colorHexString := r.Form["note-color"][0] // TODO: validointi?
 	//start := r.Form["note-start"][0]
 	//end := r.Form["note-end"][0]
 	dates, lesUnparsables, errorMessages := parseStartAndEndDates(r.Form["note-start"][0], r.Form["note-end"][0])
@@ -230,8 +231,8 @@ func AddNoteAndSendCalendar(w http.ResponseWriter, r *http.Request){
 		SendCalendar(w, r, []string{"End date not after start date."})
 		return
 	}
-
-	note := Note{noteText, startDate, endDate, []*Category{}, betterguid.New()}
+	// TODO: väri
+	note := Note{noteText, startDate, endDate, colorHexString, []*Category{}, betterguid.New()}
 	TheLife.addNote(&note)
 	fmt.Println("note added with id: ", note.Id)
 	SendCalendar(w, r, []string{})

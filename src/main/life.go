@@ -10,7 +10,8 @@ type Note struct{
 	Text string
 	Start time.Time
 	End time.Time
-	Categories []*Category
+	Color string
+	Categories []*Category // TODO: poistettava?
 	Id string
 }
 

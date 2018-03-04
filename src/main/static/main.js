@@ -99,9 +99,11 @@ function noteRepClicked(e){
     var start = noteRep.data("note-start");
     var end = noteRep.data("note-end");
     var text = noteRep.data("note-text");
+    var color = noteRep.data("note-color");
     var id = noteRep.data("note-id");
     console.assert([start, end, text, id].every(x => x !== undefined), [start, end, text, id]);
     $('#note-selected-text').attr('value', text);
+    $('#note-selected-color').attr('value', color);
     $('#note-selected-start').attr('value', start);
     $('#note-selected-end').attr('value', end);
     $('#selected-note-id').attr('value', id);
